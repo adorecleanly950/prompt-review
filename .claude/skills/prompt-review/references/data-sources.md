@@ -207,6 +207,37 @@ Cline と同じ手順。
 
 ---
 
+## 7. OpenCode
+
+### 保存場所
+| OS | パス |
+|----|------|
+| Windows | `%USERPROFILE%\.local\share\opencode\` |
+| macOS | `~/.local/share/opencode/` |
+| Linux | `~/.local/share/opencode/` |
+
+環境変数 `XDG_DATA_HOME` が設定されている場合は、`$XDG_DATA_HOME/opencode/` を使用する。
+
+### ファイル形式
+SQLite データベース（`opencode.db` または `opencode-<channel>.db`）
+
+### 主要テーブル
+- `project` - `worktree`, `name` などのプロジェクト情報
+- `session` - セッション単位のメタデータ
+- `message` - メッセージ単位の情報。`data` カラムはJSON
+- `part` - メッセージの各パート。`data` カラムはJSON
+
+### 抽出方法
+1. `opencode.db` を優先し、存在しない場合は `opencode-*.db` を探索
+2. `project`, `session`, `message`, `part` を結合
+3. `session.parent_id IS NULL` の親セッションのみ対象（サブエージェントの子セッションは除外）
+4. `message.data.role == "user"` のメッセージのみ対象
+5. `part.data.type == "text"` かつ `part.data.synthetic != true` かつ `part.data.ignored != true` のパートを連結してプロンプト化
+6. タイムスタンプは `message.time_created`（Unix epoch ミリ秒）を使用
+7. プロジェクト名は `project.worktree` の basename を使用
+
+---
+
 ## 共通のサンプリング戦略
 
 大量のログデータを効率的に処理するため、以下の戦略を適用する:

@@ -540,6 +540,153 @@ def collect_antigravity(cutoff_ms: int | None) -> dict:
     return result
 
 
+def collect_opencode(cutoff_ms: int | None, project_filter: str | None) -> dict:
+    """OpenCode の SQLite DB からユーザープロンプトを収集"""
+    result = {"tool": "OpenCode", "status": "未検出", "messages": [], "period": ""}
+
+    xdg_data_home = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+    opencode_dir = xdg_data_home / "opencode"
+    if not opencode_dir.exists():
+        return result
+
+    db_paths = []
+    primary_db = opencode_dir / "opencode.db"
+    if primary_db.exists():
+        db_paths.append(primary_db)
+
+    for db_path in sorted(opencode_dir.glob("opencode-*.db")):
+        if db_path not in db_paths:
+            db_paths.append(db_path)
+
+    if not db_paths:
+        return result
+
+    messages = []
+    seen_message_ids = set()
+
+    for db_path in db_paths:
+        conn = None
+        try:
+            conn = sqlite3.connect(str(db_path))
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT
+                    m.id AS message_id,
+                    m.time_created AS message_time_created,
+                    m.data AS message_data,
+                    p.worktree AS project_worktree,
+                    s.directory AS session_directory,
+                    s.parent_id AS session_parent_id,
+                    pt.id AS part_id,
+                    pt.time_created AS part_time_created,
+                    pt.data AS part_data
+                FROM message m
+                JOIN session s ON s.id = m.session_id
+                JOIN project p ON p.id = s.project_id
+                JOIN part pt ON pt.message_id = m.id
+                ORDER BY m.time_created ASC, pt.time_created ASC, pt.id ASC
+                """
+            )
+
+            grouped = {}
+            for row in cursor.fetchall():
+                message_id = row["message_id"]
+                if message_id in seen_message_ids:
+                    continue
+
+                if message_id not in grouped:
+                    try:
+                        message_data = json.loads(row["message_data"])
+                    except (TypeError, json.JSONDecodeError):
+                        grouped[message_id] = None
+                        continue
+
+                    if row["session_parent_id"] is not None:
+                        grouped[message_id] = None
+                        continue
+
+                    if message_data.get("role") != "user":
+                        grouped[message_id] = None
+                        continue
+
+                    grouped[message_id] = {
+                        "timestamp_ms": row["message_time_created"] or 0,
+                        "worktree": row["project_worktree"] or "",
+                        "session_directory": row["session_directory"] or "",
+                        "texts": [],
+                    }
+
+                entry = grouped.get(message_id)
+                if entry is None:
+                    continue
+
+                try:
+                    part_data = json.loads(row["part_data"])
+                except (TypeError, json.JSONDecodeError):
+                    continue
+
+                if part_data.get("type") != "text":
+                    continue
+                if part_data.get("synthetic") is True:
+                    continue
+                if part_data.get("ignored") is True:
+                    continue
+
+                text = sanitize_text(str(part_data.get("text", "")).strip())
+                if not text:
+                    continue
+                entry["texts"].append(text)
+
+            for message_id, entry in grouped.items():
+                if entry is None:
+                    continue
+
+                text = " ".join(entry["texts"]).strip()
+                if not text:
+                    continue
+
+                timestamp_ms = entry["timestamp_ms"]
+                if cutoff_ms and timestamp_ms and timestamp_ms < cutoff_ms:
+                    continue
+
+                project_source = entry["worktree"] or entry["session_directory"]
+                project_name = Path(project_source).name if project_source else "unknown"
+
+                if project_filter:
+                    filter_value = project_filter.lower()
+                    haystacks = [project_name.lower()]
+                    if entry["worktree"]:
+                        haystacks.append(entry["worktree"].lower())
+                    if entry["session_directory"]:
+                        haystacks.append(entry["session_directory"].lower())
+                    if not any(filter_value in item for item in haystacks):
+                        continue
+
+                messages.append({
+                    "text": text[:500],
+                    "timestamp": ts_to_iso(timestamp_ms) if timestamp_ms else "unknown",
+                    "timestamp_ms": timestamp_ms,
+                    "project": project_name or "unknown",
+                })
+                seen_message_ids.add(message_id)
+        except sqlite3.Error:
+            continue
+        finally:
+            if conn:
+                conn.close()
+
+    if messages:
+        result["status"] = "検出"
+        result["messages"] = messages
+        timestamps = [m["timestamp"] for m in messages if m["timestamp"] != "unknown"]
+        if timestamps:
+            result["period"] = f"{min(timestamps)} 〜 {max(timestamps)}"
+
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description="AI対話履歴を収集・整形して出力する")
     parser.add_argument("--days", type=int, default=7, help="過去N日分に限定（デフォルト: 7日）")
@@ -560,6 +707,7 @@ def main():
         collect_roo_code(cutoff_ms),
         collect_windsurf(cutoff_ms),
         collect_antigravity(cutoff_ms),
+        collect_opencode(cutoff_ms, args.project),
     ]
 
     # サマリー生成

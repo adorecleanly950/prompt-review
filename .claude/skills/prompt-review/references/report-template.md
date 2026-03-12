@@ -22,6 +22,7 @@
 | Roo Code | 検出 / 未検出 | N件 | - |
 | Windsurf | 検出 / 未検出 | N件 | - |
 | Antigravity | 検出 / 未検出 | N件 | - |
+| OpenCode | 検出 / 未検出 | N件 | YYYY-MM-DD HH:MM 〜 YYYY-MM-DD HH:MM |
 
 <!-- データソースサマリーの記述ルール:
   - 未検出のツールは期間を「-」とする
