@@ -93,7 +93,43 @@ sqlite3 "<path>/state.vscdb" "SELECT value FROM ItemTable WHERE key = 'chat.Chat
 
 ---
 
-## 3. Cline
+## 3. Cursor
+
+### 保存場所
+| OS | パス |
+|----|------|
+| Windows | `%APPDATA%\Cursor\User\workspaceStorage\*\state.vscdb` |
+| macOS | `~/Library/Application Support/Cursor/User/workspaceStorage/*/state.vscdb` |
+| Linux | `~/.config/Cursor/User/workspaceStorage/*/state.vscdb` |
+
+### ファイル形式
+SQLite データベース（`state.vscdb`）。VS Code 系と同様の workspaceStorage 構造。
+
+### ファイル構造
+```
+Cursor/User/workspaceStorage/
+├── {workspace-id}/
+│   ├── state.vscdb           # SQLite DB（チャット履歴含む）
+│   └── workspace.json        # ワークスペースパス（folder: file:///path/to/project）
+```
+
+### 抽出方法
+1. `aiService.prompts` キーからプロンプト履歴を取得
+2. 形式: `[{"text": "ユーザーの入力", "commandType": 4}, ...]`
+3. `workspace.json` の `folder` からプロジェクト名を取得（file:// プレフィックスを除去）
+4. タイムスタンプは state.vscdb の更新日時を代用（プロンプト単位のタイムスタンプは非公開）
+
+```bash
+sqlite3 "<path>/state.vscdb" "SELECT value FROM ItemTable WHERE key = 'aiService.prompts';"
+```
+
+### 注意事項
+- Cursor v0.43 以降では `composer.composerData` にも会話メタデータがあるが、プロンプト本文は `aiService.prompts` に格納
+- データベース形式は非公式のため、将来のバージョンで変更される可能性がある
+
+---
+
+## 4. Cline
 
 ### 保存場所
 | OS | パス |
@@ -121,7 +157,7 @@ saoudrizwan.claude-dev/
 
 ---
 
-## 4. Roo Code
+## 5. Roo Code
 
 ### 保存場所
 | OS | パス |
@@ -148,7 +184,7 @@ Cline と同じ手順。
 
 ---
 
-## 5. Windsurf (Cascade)
+## 6. Windsurf (Cascade)
 
 ### 保存場所
 | OS | パス |
@@ -176,7 +212,7 @@ Cline と同じ手順。
 
 ---
 
-## 6. Google Antigravity
+## 7. Google Antigravity
 
 ### 保存場所
 | OS | パス |
@@ -209,7 +245,7 @@ Cline と同じ手順。
 
 ---
 
-## 7. OpenAI Codex（CLI）
+## 8. OpenAI Codex（CLI）
 
 ### 保存場所
 | OS | パス |
@@ -259,7 +295,7 @@ Cline と同じ手順。
 
 ---
 
-## 8. OpenCode
+## 9. OpenCode
 
 ### 保存場所
 | OS | パス |
@@ -305,6 +341,7 @@ SQLite データベース（`opencode.db` または `opencode-<channel>.db`）
 - Claude Code: `timestamp` フィールド（Unix epoch ミリ秒）で比較
 - Cline/Roo Code: `task_metadata.json` のタイムスタンプで比較
 - GitHub Copilot Chat: セッションデータ内のタイムスタンプで比較
+- Cursor: state.vscdb の更新日時で比較（プロンプト単位のタイムスタンプは非公開）
 - OpenAI Codex: `timestamp` フィールド（ISO 8601）で比較
 - Windsurf/Antigravity: ファイルの更新日時で比較（正確なタイムスタンプが取れない場合）
 

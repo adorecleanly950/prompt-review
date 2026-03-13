@@ -347,6 +347,79 @@ def collect_copilot_chat(cutoff_ms: int | None, project_filter: str | None) -> d
     return result
 
 
+def collect_cursor(cutoff_ms: int | None, project_filter: str | None) -> dict:
+    """Cursor の state.vscdb から aiService.prompts を収集"""
+    result = {"tool": "Cursor", "status": "未検出", "messages": [], "period": ""}
+
+    appdata = get_appdata_path()
+    workspace_storage = appdata / "Cursor" / "User" / "workspaceStorage"
+    if not workspace_storage.exists():
+        return result
+
+    all_prompts = []
+
+    for vscdb_path in workspace_storage.glob("*/state.vscdb"):
+        # 接続前にカットオフチェックして I/O を削減
+        file_mtime_ms = int(vscdb_path.stat().st_mtime * 1000)
+        if cutoff_ms and file_mtime_ms < cutoff_ms:
+            continue
+
+        try:
+            with sqlite3.connect(str(vscdb_path)) as conn:
+                cur = conn.cursor()
+
+                # aiService.prompts にユーザープロンプト履歴がある
+                cur.execute("SELECT value FROM ItemTable WHERE key = 'aiService.prompts'")
+                row = cur.fetchone()
+                if row and row[0]:
+                    try:
+                        entries = json.loads(row[0])
+                        if not isinstance(entries, list):
+                            continue
+
+                        # workspace.json からプロジェクトパスを取得
+                        workspace_dir = vscdb_path.parent
+                        workspace_json = workspace_dir / "workspace.json"
+                        project_name = workspace_dir.name[:12]
+                        if workspace_json.exists():
+                            try:
+                                ws_data = json.loads(workspace_json.read_text(encoding="utf-8"))
+                                folder = ws_data.get("folder", "")
+                                if folder.startswith("file://"):
+                                    folder = folder[7:]
+                                project_name = Path(folder).name if folder else project_name
+                            except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+                                pass
+
+                        if project_filter:
+                            if project_filter.lower() not in project_name.lower():
+                                continue
+
+                        for entry in entries:
+                            if isinstance(entry, dict):
+                                text = entry.get("text", "").strip()
+                                if text:
+                                    all_prompts.append({
+                                        "text": text[:500],
+                                        "timestamp": ts_to_iso(file_mtime_ms),
+                                        "timestamp_ms": file_mtime_ms,
+                                        "project": project_name,
+                                    })
+                    except (json.JSONDecodeError, AttributeError):
+                        pass
+        except sqlite3.Error:
+            continue
+
+    if all_prompts:
+        result["status"] = "検出"
+        result["messages"] = all_prompts
+        timestamps = [m["timestamp"] for m in all_prompts if m["timestamp"] != "unknown"]
+        if timestamps:
+            result["period"] = f"{min(timestamps)} 〜 {max(timestamps)}"
+
+    return result
+
+
 def collect_cline(cutoff_ms: int | None) -> dict:
     """Cline の api_conversation_history.json からプロンプトを収集"""
     result = {"tool": "Cline", "status": "未検出", "messages": [], "period": ""}
@@ -823,6 +896,7 @@ def main():
     sources = [
         collect_claude_code(cutoff_ms, args.project),
         collect_copilot_chat(cutoff_ms, args.project),
+        collect_cursor(cutoff_ms, args.project),
         collect_cline(cutoff_ms),
         collect_roo_code(cutoff_ms),
         collect_windsurf(cutoff_ms),
