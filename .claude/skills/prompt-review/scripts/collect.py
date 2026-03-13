@@ -652,18 +652,22 @@ def collect_codex(cutoff_ms: int | None, project_filter: str | None) -> dict:
                     except json.JSONDecodeError:
                         continue
 
+                    entry_type = entry.get("type", "")
+                    payload = entry.get("payload")
+                    if not entry_type or not isinstance(payload, dict):
+                        continue
+
                     timestamp_str = entry.get("timestamp", "")
 
-                    # SessionMeta からプロジェクト情報を取得
-                    session_meta = entry.get("SessionMeta") or entry.get("session_meta")
-                    if session_meta:
-                        cwd = session_meta.get("cwd", "") or session_meta.get("working_directory", "")
+                    # session_meta からプロジェクト情報を取得
+                    if entry_type == "session_meta":
+                        cwd = payload.get("cwd", "")
                         continue
 
-                    # ResponseItem からユーザーメッセージを抽出
-                    response_item = entry.get("ResponseItem") or entry.get("response_item")
-                    if not response_item:
+                    # response_item からユーザーメッセージを抽出
+                    if entry_type != "response_item":
                         continue
+                    response_item = payload
 
                     item_type = response_item.get("type", "")
                     role = response_item.get("role", "")
