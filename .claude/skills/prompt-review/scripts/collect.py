@@ -75,7 +75,7 @@ def get_appdata_path() -> Path:
 
 
 def get_claude_dir() -> Path:
-    return Path.home() / ".claude"
+    return Path(os.environ.get("CLAUDE_CONFIG_DIR", Path.home() / ".claude"))
 
 
 def ts_to_iso(ts_ms: int) -> str:

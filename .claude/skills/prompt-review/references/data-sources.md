@@ -13,6 +13,8 @@
 | macOS | `~/.claude/` |
 | Linux | `~/.claude/` |
 
+環境変数 `CLAUDE_CONFIG_DIR` が設定されている場合は、そのパスを使用する。
+
 ### ファイル構造
 ```
 ~/.claude/
